@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <style>
+        body {
+            background: linear-gradient(
+                to right,
+                rgb(75, 121, 161),
+                rgb(40, 62, 81)
+            );
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Todo</h1>
+            <h2 id="date"></h2>
+        </header>
+        <main>
+            <form id="todo-form" class="input-group mb-3">
+                <input type="text" id="todo-input" class="form-control" placeholder="Add a new todo" aria-label="Add a new todo" aria-describedby="button-addon">
+                <button class="btn btn-primary" type="button" id="add-todo">+</button>
+            </form>
+            <button class="btn btn-danger" id="clear-all">Clear All</button>
+            <ul id="todo-list" class="list-group border">
+                <!-- Todo items will be added here dynamically -->
+            </ul>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Get today's date
+            const dateElement = document.getElementById("date");
+            const today = new Date();
+            dateElement.innerText = today.toLocaleDateString("en-us", { weekday: "long", year: "numeric", month: "short", day: "numeric" });
+
+            // Get elements
+            const todoForm = document.getElementById("todo-form");
+            const todoInput = document.getElementById("todo-input");
+            const addTodoButton = document.getElementById("add-todo");
+            const clearAllButton = document.getElementById("clear-all");
+            const todoList = document.getElementById("todo-list");
+
+            // Load todos from local storage
+            let todos = JSON.parse(localStorage.getItem("todos")) || [];
+
+            // Function to save todos to local storage
+            function saveTodos() {
+                localStorage.setItem("todos", JSON.stringify(todos));
+            }
+
+            // Function to add a new todo
+            function addTodo() {
+                const todoText = todoInput.value.trim();
+                if (todoText) {
+                    const todo = { text: todoText, done: false };
+                    todos.push(todo);
+                    saveTodos();
+                    renderTodos();
+                    todoInput.value = "";
+                    todoInput.focus();
+                }
+            }
+
+            // Function to remove a todo
+            function removeTodo(index) {
+                todos.splice(index, 1);
+                saveTodos();
+                renderTodos();
+            }
+
+            // Function to toggle todo status
+            function toggleTodo(index) {
+                todos[index].done = !todos[index].done;
+                saveTodos();
+                renderTodos();
+            }
+
+            // Function to clear all todos
+            function clearAllTodos() {
+                todos = [];
+                saveTodos();
+                renderTodos();
+            }
+
+            // Function to render todos
+            function renderTodos() {
+                todoList.innerHTML = "";
+                todos.forEach((todo, index) => {
+                    const listItem = document.createElement("li");
+                    listItem.className = "list-group-item p-3";
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.className = "form-check-input me-1";
+                    checkbox.checked = todo.done;
+                    checkbox.addEventListener("change", () => toggleTodo(index));
+                    const label = document.createElement("label");
+                    label.className = "form-check-label";
+                    if (todo.done) {
+                        label.innerHTML = `<strike>${todo.text}</strike>`;
+                    } else {
+                        label.innerText = todo.text;
+                    }
+                    const removeButton = document.createElement("button");
+                    removeButton.className = "btn btn-danger btn-sm float-end";
+                    removeButton.innerText = "Remove";
+                    removeButton.addEventListener("click", () => removeTodo(index));
+                    listItem.appendChild(checkbox);
+                    listItem.appendChild(label);
+                    listItem.appendChild(removeButton);
+                    todoList.appendChild(listItem);
+                });
+            }
+
+            // Event listeners
+            addTodoButton.addEventListener("click", addTodo);
+            todoForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                addTodo();
+            });
+            clearAllButton.addEventListener("click", clearAllTodos);
+
+            // Initial rendering
+            renderTodos();
+        });
+    </script>
+</body>
+</html>
